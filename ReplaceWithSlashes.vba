@@ -1,4 +1,4 @@
-Sub CleanURLs_FullASCII()
+Sub CleanURLs_Final()
     Dim rng As Range
     Dim dataArr As Variant
     Dim i As Long, j As Long
@@ -10,47 +10,37 @@ Sub CleanURLs_FullASCII()
     Application.Calculation = xlCalculationManual
     Application.EnableEvents = False
     
-    ' 2. Create Dictionary
+    ' 2. Create Dictionary (Full ASCII List)
     Set dict = CreateObject("Scripting.Dictionary")
     
-    ' =========================================================
-    ' SECTION 1: CUSTOM / LONG OVERRIDES (HIGHEST PRIORITY)
-    ' =========================================================
-    ' We place these first so they are caught before generic codes.
-    dict.Add "%253A", "/"   ' Your specific requirement
-    dict.Add "+", " "       ' Google/Query string space
+    ' --- CUSTOM OVERRIDES (Top Priority) ---
+    dict.Add "%253A", "/"
+    dict.Add "+", " "
     
-    ' =========================================================
-    ' SECTION 2: COMMON CONTROL CHARACTERS
-    ' =========================================================
-    dict.Add "%09", vbTab   ' Horizontal Tab
-    dict.Add "%0A", vbLf    ' Line Feed
-    dict.Add "%0D", vbCr    ' Carriage Return
+    ' --- CONTROL CHARACTERS ---
+    dict.Add "%09", vbTab
+    dict.Add "%0A", vbLf
+    dict.Add "%0D", vbCr
     
-    ' =========================================================
-    ' SECTION 3: SYMBOLS & PUNCTUATION (HEX 20-2F)
-    ' =========================================================
-    dict.Add "%20", " "     ' Space
-    dict.Add "%21", "!"     ' Exclamation mark
-    dict.Add "%22", """"    ' Double quotes (escaped in VBA)
-    dict.Add "%23", "#"     ' Number sign
-    dict.Add "%24", "$"     ' Dollar sign
-    dict.Add "%25", "%"     ' Percent
-    dict.Add "%26", "&"     ' Ampersand
-    dict.Add "%27", "'"     ' Single quote
-    dict.Add "%28", "("     ' Left parenthesis
-    dict.Add "%29", ")"     ' Right parenthesis
-    dict.Add "%2A", "*"     ' Asterisk
-    dict.Add "%2B", "+"     ' Plus
-    dict.Add "%2C", ","     ' Comma
-    dict.Add "%2D", "-"     ' Hyphen
-    dict.Add "%2E", "."     ' Period
-    dict.Add "%2F", "/"     ' Slash
+    ' --- SYMBOLS (HEX 20-2F) ---
+    dict.Add "%20", " "
+    dict.Add "%21", "!"
+    dict.Add "%22", """"
+    dict.Add "%23", "#"
+    dict.Add "%24", "$"
+    dict.Add "%25", "%"
+    dict.Add "%26", "&"
+    dict.Add "%27", "'"
+    dict.Add "%28", "("
+    dict.Add "%29", ")"
+    dict.Add "%2A", "*"
+    dict.Add "%2B", "+"
+    dict.Add "%2C", ","
+    dict.Add "%2D", "-"
+    dict.Add "%2E", "."
+    dict.Add "%2F", "/"
     
-    ' =========================================================
-    ' SECTION 4: NUMBERS 0-9 (HEX 30-39)
-    ' =========================================================
-    ' (Included in case your data encodes numbers like %31 for 1)
+    ' --- NUMBERS (HEX 30-39) ---
     dict.Add "%30", "0"
     dict.Add "%31", "1"
     dict.Add "%32", "2"
@@ -62,37 +52,28 @@ Sub CleanURLs_FullASCII()
     dict.Add "%38", "8"
     dict.Add "%39", "9"
     
-    ' =========================================================
-    ' SECTION 5: SYMBOLS (HEX 3A-40)
-    ' =========================================================
-    dict.Add "%3A", ":"     ' Colon
-    dict.Add "%3B", ";"     ' Semicolon
-    dict.Add "%3C", "<"     ' Less than
-    dict.Add "%3D", "="     ' Equals
-    dict.Add "%3E", ">"     ' Greater than
-    dict.Add "%3F", "?"     ' Question mark
-    dict.Add "%40", "@"     ' At sign
+    ' --- SYMBOLS (HEX 3A-40) ---
+    dict.Add "%3A", ":"
+    dict.Add "%3B", ";"
+    dict.Add "%3C", "<"
+    dict.Add "%3D", "="
+    dict.Add "%3E", ">"
+    dict.Add "%3F", "?"
+    dict.Add "%40", "@"
     
-    ' =========================================================
-    ' SECTION 6: SYMBOLS (HEX 5B-60)
-    ' =========================================================
-    dict.Add "%5B", "["     ' Left bracket
-    dict.Add "%5C", "\"     ' Backslash
-    dict.Add "%5D", "]"     ' Right bracket
-    dict.Add "%5E", "^"     ' Caret
-    dict.Add "%5F", "_"     ' Underscore
-    dict.Add "%60", "`"     ' Grave accent
+    ' --- SYMBOLS (HEX 5B-60) ---
+    dict.Add "%5B", "["
+    dict.Add "%5C", "\"
+    dict.Add "%5D", "]"
+    dict.Add "%5E", "^"
+    dict.Add "%5F", "_"
+    dict.Add "%60", "`"
     
-    ' =========================================================
-    ' SECTION 7: SYMBOLS (HEX 7B-7E)
-    ' =========================================================
-    dict.Add "%7B", "{"     ' Left brace
-    dict.Add "%7C", "|"     ' Vertical bar
-    dict.Add "%7D", "}"     ' Right brace
-    dict.Add "%7E", "~"     ' Tilde
-    
-    ' Note: We skipped A-Z (%41-%5A) and a-z (%61-%7A) 
-    ' per your request.
+    ' --- SYMBOLS (HEX 7B-7E) ---
+    dict.Add "%7B", "{"
+    dict.Add "%7C", "|"
+    dict.Add "%7D", "}"
+    dict.Add "%7E", "~"
     
     ' 3. Select Range
     On Error Resume Next
@@ -104,45 +85,48 @@ Sub CleanURLs_FullASCII()
         GoTo Cleanup
     End If
     
-    ' 4. Process Data
-    If rng.Cells.Count = 1 Then
-        Dim txt As String
-        txt = rng.Value
-        If Len(txt) > 0 Then
-            For Each key In dict.Keys
-                txt = Replace(txt, key, dict(key))
-            Next key
-            rng.Value = txt
-            ActiveSheet.Hyperlinks.Add Anchor:=rng, Address:=txt
-        End If
-    Else
+    ' 4. Process Data (Unified Array Logic)
+    ' If selection is 1 cell, rng.Value is not an array, so we force it.
+    If IsArray(rng.Value) Then
         dataArr = rng.Value
-        For i = 1 To UBound(dataArr, 1)
-            For j = 1 To UBound(dataArr, 2)
-                If Not IsError(dataArr(i, j)) Then
-                    If Len(dataArr(i, j)) > 0 Then
-                        For Each key In dict.Keys
-                            dataArr(i, j) = Replace(dataArr(i, j), key, dict(key))
-                        Next key
-                    End If
-                End If
-            Next j
-        Next i
-        
-        rng.Value = dataArr
-        
-        Dim cell As Range
-        For Each cell In rng
-            If Len(cell.Value) > 0 Then
-                ActiveSheet.Hyperlinks.Add Anchor:=cell, Address:=cell.Value
-            End If
-        Next cell
+    Else
+        ReDim dataArr(1 To 1, 1 To 1)
+        dataArr(1, 1) = rng.Value
     End If
+    
+    ' Loop through the array (Rows then Columns)
+    For i = LBound(dataArr, 1) To UBound(dataArr, 1)
+        For j = LBound(dataArr, 2) To UBound(dataArr, 2)
+            If Not IsError(dataArr(i, j)) Then
+                If Len(dataArr(i, j)) > 0 Then
+                    ' Cycle through Dictionary
+                    For Each key In dict.Keys
+                        dataArr(i, j) = Replace(dataArr(i, j), key, dict(key))
+                    Next key
+                End If
+            End If
+        Next j
+    Next i
+    
+    ' Dump clean text back to Excel
+    rng.Value = dataArr
+    
+    ' 5. Create Hyperlinks (with "http" check)
+    Dim cell As Range
+    Dim val As String
+    
+    For Each cell In rng
+        val = CStr(cell.Value)
+        ' Check if not empty AND starts with "http" (Case Insensitive)
+        If Len(val) > 0 And Left(LCase(val), 4) = "http" Then
+            ActiveSheet.Hyperlinks.Add Anchor:=cell, Address:=val
+        End If
+    Next cell
 
 Cleanup:
     Application.ScreenUpdating = True
     Application.Calculation = xlCalculationAutomatic
     Application.EnableEvents = True
-    MsgBox "Full ASCII decode complete."
+    MsgBox "Processing complete."
 
 End Sub
