@@ -84,7 +84,7 @@ To change a value within a specific table record.
 
 **Create (Adding a Row):**
 To append a new blank row to the bottom of the table and populate it.
-```vba
+
 Dim newRow As ListRow
 Set newRow = tbl.ListRows.Add
 
@@ -100,45 +100,32 @@ To remove a specific row entirely from the table structure.
     tbl.ListRows(2).Delete
     `
 
----
-
 ### 4. User Forms: Pulling Data into Variables
 
 Extracting user inputs requires referencing the specific UI element's value property.
 
 - **TextBox:** Pull standard text or numeric entry.
-    ```vba
-    Dim userName As String
-    userName = Me.txtUserName.Value
-    ```
+  Dim userName As String
+  userName = Me.txtUserName.Value
 - **ComboBox (Dropdown):** Pull the selected list item.
-    ```vba
-    Dim selectedDepartment As String
-    selectedDepartment = Me.cmbDepartment.Value
-    ```
+  Dim selectedDepartment As String
+  selectedDepartment = Me.cmbDepartment.Value
 - **CheckBox:** Pull a boolean True/False value.
-    ```vba
-    Dim isManager As Boolean
-    isManager = Me.chkManagerStatus.Value
-    ```
+  Dim isManager As Boolean
+  isManager = Me.chkManagerStatus.Value
 - **OptionButton (Radio Button):** Evaluate which option in a group is selected.
-    ```vba
-    Dim roleLevel As String
-    If Me.optJunior.Value = True Then
-        roleLevel = "Junior"
-    ElseIf Me.optSenior.Value = True Then
-        roleLevel = "Senior"
-    End If
-    ```
-
----
+  Dim roleLevel As String
+  If Me.optJunior.Value = True Then
+  roleLevel = "Junior"
+  ElseIf Me.optSenior.Value = True Then
+  roleLevel = "Senior"
+  End If
 
 ### 5. Access Database CRUD Operations
 
 Interacting with an external Access Database requires establishing an ADODB connection. The standard methodology separates the connection routine from the execution routine.
 
 **Standard Connection Structure:**
-```vba
 Dim conn As Object
 Dim rs As Object
 Dim dbPath As String
@@ -150,11 +137,9 @@ Dim sqlQuery As String
     ' 2. Initialize Connection
     Set conn = CreateObject("ADODB.Connection")
     conn.Open "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" & dbPath & ";"
-    ```
 
 **Execute Operations (Create, Update, Delete):**
 To modify data, pass standard SQL statements through the connection.
-```vba
 ' Create (Insert)
 sqlQuery = "INSERT INTO Employees (EmpName, Department) VALUES ('John Doe', 'Analytics')"
 conn.Execute sqlQuery
@@ -166,11 +151,9 @@ conn.Execute sqlQuery
     ' Delete
     sqlQuery = "DELETE FROM Employees WHERE EmpID = 101"
     conn.Execute sqlQuery
-    ```
 
 **Read Operation (Select):**
 To pull data from Access, open a Recordset.
-```vba
 Set rs = CreateObject("ADODB.Recordset")
 sqlQuery = "SELECT \* FROM Employees WHERE Department = 'Analytics'"
 
@@ -186,11 +169,8 @@ sqlQuery = "SELECT \* FROM Employees WHERE Department = 'Analytics'"
     ' Close the recordset
     rs.Close
     Set rs = Nothing
-    ```
 
 **Close Connection:**
 Always terminate the connection once operations are complete to prevent locking issues.
-`vba
-    conn.Close
-    Set conn = Nothing
-    `
+conn.Close
+Set conn = Nothing
